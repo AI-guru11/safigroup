@@ -92,19 +92,18 @@
     <!-- Global Ambient Glow Background (CSS-only, replaces JS canvas for performance) -->
     <div id="ambient-glow-bg" aria-hidden="true"></div>
 
-    <header class="site-header sticky top-0 z-50 bg-transparent backdrop-blur-md border-b border-[color:var(--border)]/30 transition-all duration-300"
-        :style="`--shrink:${headerShrink}`" :class="{'py-2': headerShrink > 0.5, 'py-4': headerShrink <= 0.5}">
+    <header class="site-header" :class="{'is-scrolled': headerShrink > 0.3}">
         <div class="mx-auto max-w-7xl px-4 sm:px-6">
             <div class="header-row flex items-center justify-between">
                 <a href="#top" class="group inline-flex items-center gap-3">
-                    <img src="assets/logo.webp" alt="Safi Group Logo" width="40" height="40" class="w-10 h-10 rounded-xl object-contain bg-white/5 ring-1 ring-white/10 group-hover:scale-105 transition-transform duration-300">
-                    <span class="leading-tight">
+                    <img src="assets/logo.webp" alt="Safi Group Logo" width="40" height="40" class="header-logo-img bg-white/5 ring-1 ring-white/10 group-hover:scale-105 transition-transform duration-300">
+                    <span class="header-brand-text leading-tight">
                         <span class="block text-lg font-extrabold tracking-tight" x-text="SITE_CONFIG.brand.name"></span>
                         <span class="block text-[11px] text-[color:var(--muted)] tracking-widest" x-text="SITE_CONFIG.brand.tagline"></span>
                     </span>
                 </a>
 
-                <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-[color:var(--muted)]">
+                <nav class="header-nav hidden md:flex items-center gap-8 text-sm font-medium text-[color:var(--muted)]">
                     <a class="hover:text-[color:var(--fg)] transition" href="services.html">الخدمات</a>
                     <a class="hover:text-[color:var(--fg)] transition" href="#products">المنتجات</a>
                     <a class="hover:text-[color:var(--fg)] transition" href="portfolio.html">أعمالنا</a>
@@ -124,7 +123,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="md:hidden" x-show="mobileOpen" x-transition.opacity x-cloak @keydown.escape.window="mobileOpen=false">
             <div class="fixed inset-0 z-50">
                 <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="mobileOpen=false"></div>
@@ -145,34 +144,37 @@
         </div>
     </header>
 
-    <main id="top" class="mx-auto max-w-7xl px-4 sm:px-6">
-        <section class="pt-10 sm:pt-16 pb-10" id="hero-section">
-            <div class="overflow-hidden relative">
-                <!-- Text Content Layer -->
-                <div class="relative px-6 sm:px-10 py-12 sm:py-20 text-center sm:text-right">
-                    <div class="max-w-3xl relative space-y-8" data-reveal>
-                        <h1 class="text-5xl sm:text-7xl lg:text-8xl font-black leading-[1.1] tracking-tight">
-                            <!-- Imagine.. - Neon Mint & Coral Gradient -->
-                            <span class="block mb-3">
-                                <span class="hero-gradient-text">
-                                    تخيل..
-                                </span>
-                            </span>
-                            <!-- We implement - Professional accent -->
-                            <span class="block hero-implement-text">
-                                نُنفذ
-                            </span>
-                        </h1>
-                        <div class="flex flex-col sm:flex-row gap-4 justify-center sm:justify-start">
-                            <a href="#brief" class="relative overflow-hidden rounded-2xl px-8 py-4 text-base font-bold text-white bg-gradient-to-l from-mint to-brand-red shadow-glow-neon hover:scale-[1.02] transition-transform">
-                                  ابدأ رحلتك معنا
-                            </a>
-                            <a href="#products" class="noise relative overflow-hidden backdrop-blur-md rounded-2xl px-8 py-4 text-base font-bold text-white bg-white/5 border border-white/10 hover:bg-white/10 hover:scale-105 hover:border-white/20 transition-all duration-300 shadow-lg">
-                                المنتجات
-                            </a>
-                        </div>
+    <main id="top">
+        <section class="hero-fullscreen" id="hero-section">
+            <!-- Large Hero Logo — shrinks into header on scroll -->
+            <img src="assets/logo.webp" alt="Safi Group" width="180" height="180"
+                 class="hero-logo-large"
+                 :class="{'is-fading': headerShrink > 0.4}">
+
+            <!-- Hero Content -->
+            <div class="hero-content">
+                <div class="space-y-8">
+                    <h1 class="text-5xl sm:text-7xl lg:text-8xl font-black leading-[1.1] tracking-tight">
+                        <span class="block mb-3">
+                            <span class="hero-gradient-text">تخيل..</span>
+                        </span>
+                        <span class="block hero-implement-text">نُنفذ</span>
+                    </h1>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <a href="#brief" class="relative overflow-hidden rounded-2xl px-8 py-4 text-base font-bold text-white bg-gradient-to-l from-mint to-brand-red shadow-glow-neon hover:scale-[1.02] transition-transform">
+                            ابدأ رحلتك معنا
+                        </a>
+                        <a href="#products" class="noise relative overflow-hidden backdrop-blur-md rounded-2xl px-8 py-4 text-base font-bold text-white bg-white/5 border border-white/10 hover:bg-white/10 hover:scale-105 hover:border-white/20 transition-all duration-300 shadow-lg">
+                            المنتجات
+                        </a>
                     </div>
                 </div>
+            </div>
+
+            <!-- Scroll Indicator -->
+            <div class="hero-scroll-hint" :class="{'is-hidden': headerShrink > 0.2}">
+                <div class="hero-scroll-hint-line"></div>
+                <span class="hero-scroll-hint-text">Scroll</span>
             </div>
         </section>
 

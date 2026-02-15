@@ -24,12 +24,15 @@ function fikraApp() {
       if (saved === 'idea') this.setTheme('idea');
       else this.setTheme('dark');
 
+      // Scroll-driven header transition: transparent → solid
+      // headerShrink goes from 0 (top of page) to 1 (past hero zone)
       let ticking = false;
+      const scrollThreshold = 200; // px of scroll to complete the transition
       const onScroll = () => {
         if (!ticking) {
           requestAnimationFrame(() => {
             const y = window.scrollY || 0;
-            this.headerShrink = Number(Math.max(0, Math.min(1, y / 120)).toFixed(3));
+            this.headerShrink = Number(Math.max(0, Math.min(1, y / scrollThreshold)).toFixed(3));
             ticking = false;
           });
           ticking = true;
@@ -37,8 +40,6 @@ function fikraApp() {
       };
       window.addEventListener('scroll', onScroll, { passive: true });
       onScroll();
-
-      // Canvas mesh gradient removed — CSS-only ambient glow for performance
     },
 
     setTheme(mode) {
