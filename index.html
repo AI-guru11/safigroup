@@ -60,6 +60,9 @@
 
     <link rel="stylesheet" href="css/style.css" />
 
+    <!-- ===== Event Splash Added ===== -->
+    <script src="assets/events/events.config.js"></script>
+
     <!-- ملفات البيانات - يمكن تعديلها بسهولة -->
     <script src="data/config.js"></script>
     <script src="data/products.js"></script>
@@ -82,6 +85,9 @@
 <body class="font-taj text-[color:var(--fg)] selection:bg-brand-red/30 selection:text-white transition-colors duration-500"
     style="background: var(--bg);"
     x-data="fikraApp()" x-init="init()">
+
+    <!-- ===== Event Splash Added ===== -->
+    <div id="event-splash" aria-hidden="true"></div>
 
     <!-- Global Ambient Glow Background (CSS-only, replaces JS canvas for performance) -->
     <div id="ambient-glow-bg" aria-hidden="true"></div>
@@ -1444,6 +1450,9 @@
         </div>
         <p>© <span x-text="new Date().getFullYear()"></span> <span x-text="window.SITE_CONFIG?.brand?.name || 'Safi Group'"></span></p>
     </footer>
+
+    <!-- ===== Event Splash Added ===== -->
+    <script src="assets/events/core.splash.js" defer></script>
 
 </body>
 </html>
