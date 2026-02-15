@@ -3,7 +3,7 @@
   Goal: stable offline-first behavior without changing the UI.
 */
 
-const CACHE_VERSION = 'v25';
+const CACHE_VERSION = 'v26';
 const CACHE_NAME = `safi-pwa-${CACHE_VERSION}`;
 
 // Core assets (same-origin)
@@ -25,7 +25,13 @@ const CORE_ASSETS = [
   './data/partners.js',
   './data/services.js',
   './data/testimonials.js',
-  './data/faq.js'
+  './data/faq.js',
+  // ===== Event Splash Added =====
+  './assets/events/events.config.js',
+  './assets/events/core.splash.js',
+  './assets/events/ramadan/ramadan.css',
+  './assets/events/ramadan/ramadan.js',
+  './assets/events/ramadan/ramadan.svg'
 ];
 
 self.addEventListener('install', (event) => {
