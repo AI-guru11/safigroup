@@ -4,8 +4,18 @@
 (function () {
   'use strict';
 
+  /* ----------------------------------------------------------------
+   * Reveal helper — removes is-splashing class so main UI becomes visible
+   * ---------------------------------------------------------------- */
+  function revealSite() {
+    document.documentElement.classList.remove('is-splashing');
+  }
+
   var config = window.__EVENT_SPLASH__;
-  if (!config || !config.ACTIVE_EVENT) return;
+  if (!config || !config.ACTIVE_EVENT) {
+    revealSite();
+    return;
+  }
 
   var EVENT    = config.ACTIVE_EVENT;
   var VERSION  = config.EVENT_VERSION || '';
@@ -18,10 +28,25 @@
   try {
     var played  = sessionStorage.getItem(SS_KEY);
     var storedV = sessionStorage.getItem(VER_KEY);
-    if (played === '1' && storedV === VERSION) return;
+    if (played === '1' && storedV === VERSION) {
+      revealSite();
+      return;
+    }
   } catch (_) {
     /* sessionStorage unavailable — proceed anyway */
   }
+
+  /* ----------------------------------------------------------------
+   * Safety fallback — reveal site after 3s if splash never completes
+   * ---------------------------------------------------------------- */
+  var safetyTimer = setTimeout(function () {
+    revealSite();
+  }, 3000);
+
+  /* ----------------------------------------------------------------
+   * Reduced-motion: show site immediately, still play abbreviated splash
+   * ---------------------------------------------------------------- */
+  var prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   /* ----------------------------------------------------------------
    * Find or create splash container
@@ -75,9 +100,11 @@
   }
 
   /* ----------------------------------------------------------------
-   * Cleanup: restore scroll, remove DOM, mark session
+   * Cleanup: restore scroll, remove DOM, mark session, reveal site
    * ---------------------------------------------------------------- */
   function cleanup() {
+    clearTimeout(safetyTimer);
+
     // Restore scroll lock
     document.body.style.overflow = origOverflow;
     document.body.style.position = origPosition;
@@ -96,6 +123,9 @@
       sessionStorage.setItem(VER_KEY, VERSION);
     } catch (_) {}
 
+    // Reveal main UI
+    revealSite();
+
     // Restore focus to body
     document.body.focus();
   }
@@ -107,7 +137,7 @@
     loadCSS(basePath + EVENT + '.css'),
     loadJS(basePath + EVENT + '.js')
   ]).then(function () {
-    // Event module must expose __ramadanSplash_build, _parallax, _play
+    // Event module must expose __<event>Splash_build, _parallax, _play
     var buildFn   = window['__' + EVENT + 'Splash_build'];
     var parallaxFn = window['__' + EVENT + 'Splash_parallax'];
     var playFn    = window['__' + EVENT + 'Splash_play'];
@@ -116,6 +146,9 @@
       cleanup();
       return;
     }
+
+    // Clear safety timer — splash is running, it will call cleanup itself
+    clearTimeout(safetyTimer);
 
     var parts = buildFn(container);
     var parallax = null;

@@ -648,47 +648,14 @@ function priceCalculator() {
 function whatsappWidget() {
   return {
     isOpen: false,
-    message: '',
-    hasInteracted: false,
-
-    quickMessages: [
-      'أريد الاستفسار عن الأسعار',
-      'أحتاج تصميم هوية بصرية',
-      'أريد طلب لوحات للمحل',
-      'استفسار عن خدمات المعارض'
-    ],
-
-    init() {
-      // إظهار البوب أب بعد 10 ثواني للزوار الجدد
-      setTimeout(() => {
-        let wasClosed = false;
-        try { wasClosed = localStorage.getItem('wa_widget_closed'); } catch (e) { /* storage unavailable */ }
-        if (!this.hasInteracted && !wasClosed) {
-          this.isOpen = true;
-        }
-      }, 10000);
-    },
+    whatsappNumber: window.SITE_CONFIG?.whatsapp || '966555862272',
 
     toggle() {
       this.isOpen = !this.isOpen;
-      this.hasInteracted = true;
     },
 
     close() {
       this.isOpen = false;
-      this.hasInteracted = true;
-      try { localStorage.setItem('wa_widget_closed', 'true'); } catch (e) { /* storage unavailable */ }
-    },
-
-    sendMessage(text = null) {
-      const msg = text || this.message || 'مرحباً، أريد الاستفسار عن خدماتكم';
-      window.open(`https://wa.me/${SITE_CONFIG.whatsapp}?text=${encodeURIComponent(msg)}`, '_blank');
-      this.message = '';
-      this.close();
-    },
-
-    selectQuickMessage(msg) {
-      this.message = msg;
     }
   };
 }
