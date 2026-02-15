@@ -14,6 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Alpine Focus Plugin** for focus management in modals
 - **PWA** with service worker for offline-first support
 - **Tajawal** Arabic font (self-hosted woff2 via `@font-face` in `css/style.css`)
+- **Airtable** (optional) — External product database with local fallback
 
 ## Development Commands
 
@@ -30,35 +31,44 @@ python -m http.server 5000 --bind 0.0.0.0
 
 ```
 /
-├── index.html              # Main single-page app (~1399 lines)
-├── portfolio.html          # Standalone portfolio page (266 lines)
-├── services.html           # Standalone services page (234 lines)
+├── index.html              # Main single-page app (~1448 lines)
+├── portfolio.html          # Standalone portfolio page (269 lines)
+├── services.html           # Standalone services page (237 lines)
 ├── manifest.json           # PWA manifest (RTL, Arabic, standalone)
-├── service-worker.js       # Offline-first caching (v23)
+├── service-worker.js       # Offline-first caching (v25)
+├── .gitignore              # Excludes venvs, .env, airtable-config.js
 ├── CLAUDE.md               # This file
+├── DEVELOPMENT_ROADMAP.md  # Feature roadmap and implementation log
+├── replit.md               # Replit deployment guide
 │
 ├── css/
-│   └── style.css           # Theme system, glass effects, animations, slider system (~2176 lines)
+│   └── style.css           # Theme system, glass effects, animations, slider system (~2355 lines)
 │
 ├── js/
-│   ├── app.js              # Alpine.js component functions (12 components, 648 lines)
-│   ├── floating-glyphs.js  # Neon icon animation system for brief wizard (340 lines)
-│   └── nebula.js           # Liquid mesh background animation — Red & Mint blobs (234 lines)
+│   ├── app.js              # Alpine.js component functions (12 components, 709 lines)
+│   ├── floating-glyphs.js  # CSS-based floating icon animations for brief wizard (112 lines)
+│   ├── nebula.js           # Liquid mesh background animation — Red blobs on canvas (233 lines)
+│   ├── mesh-gradient.js    # CSS-based mesh gradient background — Mint & Coral palette (175 lines)
+│   ├── airtable-service.js # Airtable API integration service with caching (219 lines)
+│   └── airtable-config.example.js  # Template for Airtable credentials (16 lines)
 │
 ├── data/                   # Data-driven content layer
 │   ├── config.js           # Site branding, contact, location, social
-│   ├── products.js         # Product catalog (24 items, 7 categories)
-│   ├── portfolio.js        # Brief wizard + Our Works (15 projects, 6 categories)
-│   ├── services.js         # Main services (3 pillars, 24 sub-services) + brief wizard data
+│   ├── products.js         # Product catalog (24 items, 6 categories)
+│   ├── portfolio.js        # Brief wizard + Our Works (15 projects, 6 categories) + gallery + transformations
+│   ├── services.js         # Main services (3 pillars, 24 sub-services) + brief wizard data + whySafi
 │   ├── partners.js         # Client/partner logos (8 orgs)
 │   ├── testimonials.js     # Customer testimonials (6 items) + company stats (STATS_DATA)
-│   └── faq.js              # Frequently asked questions (8 items, 4 categories)
+│   └── faq.js              # Frequently asked questions (8 items, 5 categories)
 │
-└── assets/
-    ├── logo.webp           # Main brand logo
-    └── icons/
-        ├── icon-192.webp   # PWA icon (small)
-        └── icon-512.webp   # PWA icon (large)
+├── assets/
+│   ├── logo.webp           # Main brand logo
+│   └── icons/
+│       ├── icon-192.webp   # PWA icon (small)
+│       └── icon-512.webp   # PWA icon (large)
+│
+├── product_manager.py      # Python CLI utility using OpenRouter (Gemma 3) for AI product descriptions
+└── products.json           # Sample output from product_manager.py
 ```
 
 ### Data-Driven Architecture
@@ -68,9 +78,9 @@ Content is separated from presentation. All dynamic data lives in `/data/*.js` f
 | File | Exports | Purpose |
 |------|---------|---------|
 | `config.js` | `SITE_CONFIG` | WhatsApp, email, brand info, location, social links |
-| `products.js` | `PRODUCTS_DATA` | Categories (7) + products (24) with prices |
-| `portfolio.js` | `PORTFOLIO_DATA` | Brief projects (6) + Our Works (15 projects, 6 categories) + gallery (3) + stats |
-| `services.js` | `SERVICES_DATA` | Main services (3 pillars: Creative Design, Marketing, Advertising/Printing) + brief wizard categories/styles |
+| `products.js` | `PRODUCTS_DATA` | Categories (6 + "all" filter) + products (24) with prices, ratings, features |
+| `portfolio.js` | `PORTFOLIO_DATA` | Brief projects (6) + Our Works (15 projects, 6 categories) + gallery (3) + transformations stats |
+| `services.js` | `SERVICES_DATA` | Main services (3 pillars: Creative Design, Marketing, Advertising/Printing) + brief wizard categories/styles + whySafi points |
 | `partners.js` | `PARTNERS_DATA` | Partner organization icons and names (8) |
 | `testimonials.js` | `TESTIMONIALS_DATA`, `STATS_DATA` | Customer testimonials (6) + company statistics (clients, projects, cities, years) |
 | `faq.js` | `FAQ_DATA` | FAQ items (8) with categories: delivery, design, payment, orders, quality |
@@ -86,7 +96,7 @@ get products() { return window.PRODUCTS_DATA?.products || []; }
 |---|----------|---------|
 | 1 | `fikraApp()` | Main app state: theme toggle, mobile menu, header scroll behavior |
 | 2 | `briefWizard()` | Multi-step client inquiry form with style matching |
-| 3 | `productsShop()` | Product catalog with category-based horizontal sliders, cart management, WhatsApp checkout. Dual-mode: slider view (all categories) + grid view (single category). RTL-aware scroll navigation. |
+| 3 | `productsShop()` | Product catalog with Airtable integration, category-based horizontal sliders, cart management, WhatsApp checkout. Dual-mode: slider view (all categories) + grid view (single category). RTL-aware scroll navigation. Async init with lazy loading. |
 | 4 | `transformationsData()` | Transformation section statistics |
 | 5 | `workGallery()` | Portfolio projects modal gallery |
 | 6 | `partnersCarousel()` | Infinite-scroll partner logos |
@@ -108,12 +118,30 @@ All 12 functions are exported to `window` scope at the bottom of `js/app.js`.
 
 ### Animation System
 
-Two dedicated JS files handle decorative animations:
+Three JS files handle decorative animations:
 
 | File | Class | Purpose |
 |------|-------|---------|
-| `js/floating-glyphs.js` | `FloatingGlyph` | Sequential neon icon animations for the brief wizard section. Fade in/out, floating vertical motion, rotation effects. |
-| `js/nebula.js` | `LiquidMesh` | Liquid mesh background animation with 4 organic blobs (Red #E53935 & Mint #00E5A0). Scroll-linked parallax, breathing scale, theme-aware rendering. |
+| `js/floating-glyphs.js` | `FloatingGlyphsCSS` | CSS transition-based sequential icon animations for the brief wizard section. Shows one glyph at a time (3 icons cycling every 5s). Fade in/out, floating vertical motion, rotation effects. Optimized from canvas to pure CSS. |
+| `js/nebula.js` | `LiquidBlob` + `LiquidMesh` | Canvas-based liquid mesh background with 4 organic blobs using Red palette only (#E31E24, #EF4444, #B91C1C, #DC2626). Scroll-linked parallax, breathing scale, theme-aware rendering. `LiquidBlob` handles individual blob physics; `LiquidMesh` orchestrates the canvas. |
+| `js/mesh-gradient.js` | `MeshGradient` | CSS-based ambient gradient background with 8 DOM blobs in Neon Mint (#81D8D0) & Coral Red (#E53935) horizontal palette. Orbital light halos, responsive resize, theme-aware via MutationObserver. Auto-initializes on `#premium-mesh-canvas` container. |
+
+### Airtable Integration (Optional)
+
+Products can optionally be loaded from an Airtable database, falling back to local `data/products.js` data.
+
+**Setup:**
+1. Copy `js/airtable-config.example.js` → `js/airtable-config.js`
+2. Fill in Airtable credentials (PAT, Base ID, Table ID)
+3. `airtable-config.js` is in `.gitignore` — never committed
+
+**How it works:**
+- `js/airtable-service.js` exports `window.AirtableService` (singleton instance)
+- `productsShop()` calls `AirtableService.fetchProducts()` on init
+- If Airtable returns data → uses it; otherwise → falls back to local `PRODUCTS_DATA`
+- 5-minute in-memory cache to reduce API calls
+- Records mapped from Airtable schema to local product format via `mapAirtableRecords()`
+- Categories extracted dynamically from fetched products via `extractCategories()`
 
 ### Theming System
 
@@ -172,7 +200,7 @@ No backend contact forms. All inquiries go via WhatsApp:
 
 ## Service Worker
 
-**Current version:** `v23` (in `CACHE_VERSION` constant)
+**Current version:** `v25` (in `CACHE_VERSION` constant)
 
 **Caching strategies:**
 | Request Type | Strategy |
@@ -181,7 +209,7 @@ No backend contact forms. All inquiries go via WhatsApp:
 | Same-origin assets | Stale-while-revalidate |
 | Cross-origin (CDN) | Cache-first with `no-cors` mode |
 
-**Cached assets:** All core HTML/CSS/JS, all 7 data files, icons, and logo. Product images cached dynamically on first load.
+**Cached assets:** All core HTML/CSS/JS (including `floating-glyphs.js`), all 7 data files, manifest, icons, and logo. Product images cached dynamically on first load. Note: `airtable-service.js`, `mesh-gradient.js`, and `nebula.js` are **not** in the precache list — they load via stale-while-revalidate as same-origin assets.
 
 **When deploying changes:** Increment `CACHE_VERSION` in `service-worker.js`.
 
@@ -193,6 +221,8 @@ No backend contact forms. All inquiries go via WhatsApp:
 4. **Glass UI Pattern** — Cards use `.noise` class with `backdrop-blur`, CSS variable borders
 5. **Data Separation** — Content changes go in `/data/*.js`, not in HTML
 6. **No Backend** — All contact/order flows use WhatsApp deep links
+7. **Airtable Credentials** — Never commit `js/airtable-config.js`; use the `.example.js` template
+8. **Python Utilities** — `product_manager.py` requires `.env` with `OPENROUTER_API_KEY`; virtualenvs excluded via `.gitignore`
 
 ## Workflow Protocol
 
@@ -213,6 +243,7 @@ Complete one functional module fully before moving to the next. Each Alpine.js c
 - To add testimonials: Edit `data/testimonials.js` (TESTIMONIALS_DATA array)
 - To update company stats: Edit `data/testimonials.js` (STATS_DATA object)
 - To add FAQ items: Edit `data/faq.js` (FAQ_DATA array, categories: delivery, design, payment, orders, quality)
+- To manage products via Airtable: Configure `js/airtable-config.js` and manage from Airtable dashboard
 
 **Important:** When adding new categories to products or portfolio, update both the category definitions and the items array to maintain consistency.
 
@@ -235,6 +266,7 @@ Complete one functional module fully before moving to the next. Each Alpine.js c
 3. Check mobile responsive layout
 4. Increment `CACHE_VERSION` in `service-worker.js`
 5. Test PWA offline functionality
+6. Verify Airtable integration (if configured) with fallback behavior
 
 ## Key Implementation Details
 
@@ -246,13 +278,14 @@ Complete one functional module fully before moving to the next. Each Alpine.js c
 ### Header Scroll Effect
 - `headerShrink` value (0-1) calculated from scroll position
 - Used for dynamic padding/opacity transitions
-- Throttled via `{ passive: true }` scroll listener
+- Throttled via `requestAnimationFrame` with `{ passive: true }` scroll listener
 
 ### Product Slider System
-**Architecture:** Category-based horizontal sliders with dual-mode view
+**Architecture:** Category-based horizontal sliders with dual-mode view and Airtable integration
 - **Slider Mode (default):** All categories displayed in separate horizontal rows
 - **Grid Mode:** Single category expanded in traditional grid layout
-- **Categories:** print, gifts, boards, rollup, exhibitions, illuminated (7 total, 24 products)
+- **Categories:** print, gifts, boards, rollup, exhibitions, illuminated (6 product categories + 1 "all" filter)
+- **Data Source:** Airtable (if configured and reachable) → local `data/products.js` fallback
 
 **Key Methods (in `productsShop()`):**
 ```javascript
@@ -260,6 +293,14 @@ categoriesWithProducts     // Filters categories with products > 0
 getProductsByCategory(id)  // Returns products for specific category
 scrollSlider(id, dir)      // RTL-aware horizontal scroll (dir * -1)
 viewAllCategory(id)        // Switches to grid view for category
+loadProducts()             // Async: tries Airtable, falls back to local
+initLazyLoading()          // IntersectionObserver for product images
+```
+
+**Product Fields:**
+```javascript
+{ id, name, price, originalPrice, tag, category, icon, image,
+  categoryName, description, features[], inStock, rating }
 ```
 
 **Responsive Behavior:**
@@ -283,8 +324,8 @@ viewAllCategory(id)        // Switches to grid view for category
 - Dual-mode: slider view (all categories) + grid view (single category)
 
 ### Brief Wizard Flow
-1. Select category (step 1)
-2. Choose design style (step 2)
+1. Select category (step 1) — 3 categories: decor, branding, events
+2. Choose design style (step 2) — 3 styles: modern, classic, neon
 3. View matched portfolio examples (step 3)
 4. Enter contact info and send via WhatsApp
 
@@ -302,14 +343,14 @@ viewAllCategory(id)        // Switches to grid view for category
 
 ### Price Calculator
 - Supports 6 product types: business cards, flyers, brochures, stickers, roll-ups, banners
-- Options: size (standard/large/custom), finishing (matte/glossy/laminated), design add-on, urgent surcharge (25%)
+- Options: size (standard/large/custom), finishing (matte/glossy/laminated), design add-on (50 SAR), urgent surcharge (25%)
 - Volume discounts: 5% at 250+, 10% at 500+, 15% at 1000+
 - Sends detailed quote via WhatsApp
 
 ### FAQ Accordion
 - Search/filter across questions and answers
 - Single-open accordion behavior (opening one closes others)
-- 8 items across categories: delivery, design, payment, orders, quality
+- 8 items across 5 categories: delivery (2), design (2), payment (1), orders (2), quality (1)
 - Data source: `FAQ_DATA` from `data/faq.js`
 
 ### Footer Social Links
@@ -324,3 +365,29 @@ viewAllCategory(id)        // Switches to grid view for category
 - 4 quick-message shortcuts for common inquiries
 - Custom message input field
 - Toggle open/close with state tracking
+
+## Key CSS Classes Reference
+
+**Core Effects:** `.noise` (glass morphism), `.shadow-glow-neon`, `.hero-gradient-text`
+
+**Product System:** `.product-card`, `.product-modal`, `.product-badge`, `.product-badge-best`, `.product-badge-new`, `.product-out-of-stock`, `.product-rating`, `.product-price-container`, `.product-discount`, `.product-quick-view`, `.product-actions`, `.product-action-btn`
+
+**Slider System:** `.horizontal-slider`, `.slider-container`, `.slider-arrow`, `.category-row`, `.category-view-all`
+
+**Layout:** `.products-grid`, `.masonry-grid`, `.masonry-item`, `.stats-grid`, `.stat-card`
+
+**Partners & Testimonials:** `.partner-capsule`, `.testimonial-card`, `.testimonial-dots`, `.testimonial-nav`
+
+**FAQ & Calculator:** `.faq-item`, `.faq-question`, `.faq-answer`, `.faq-search`, `.calculator-card`, `.calculator-select`, `.calculator-total`, `.calculator-discount`
+
+**WhatsApp Widget:** `.wa-widget`, `.wa-widget-btn`, `.wa-widget-popup`, `.wa-widget-body`, `.wa-widget-header`
+
+**Utilities:** `.lazy-image`, `.skeleton-card`, `.skeleton-slider`, `.error-message`, `.cart-floating`, `.cart-count`, `.footer-social-link`
+
+## .gitignore
+
+The following are excluded from version control:
+- Python virtual environments (`sssvenv/`, `openrouterenv/`, `bin/`, `include/`, `lib/`, `share/`, `pyvenv.cfg`)
+- `.env` (API keys for OpenRouter)
+- `js/airtable-config.js` (Airtable credentials)
+- Python bytecode (`__pycache__/`, `*.py[cod]`, `*$py.class`)
