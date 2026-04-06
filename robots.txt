@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ai-guru11.github.io/safigroup/sitemap.xml
