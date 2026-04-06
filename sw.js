@@ -1,4 +1,4 @@
-const CACHE_NAME = 'safi-site-v3';
+const CACHE_NAME = 'safi-site-v4';
 const CORE_ASSETS = [
   './index.html',
   './offline.html',
