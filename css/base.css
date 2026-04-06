@@ -1,6 +1,8 @@
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
-body {
+/* Ensure the HTML hidden attribute always works regardless of CSS display overrides */
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; overflow-x: hidden; }
+body { overflow-x: hidden;
   margin: 0;
   font-family: Tajawal, system-ui, sans-serif;
   background:
@@ -99,5 +101,8 @@ main { padding-bottom: 2rem; }
     width: 46px; height: 46px; border-radius: 14px; background: rgba(255,255,255,.05);
     border: 1px solid var(--border); color: var(--fg);
   }
-  .mobile-menu { display: block; }
+  /* .mobile-menu visibility is controlled exclusively by the [hidden] attribute via JS.
+     We only need to ensure the layout styles are available when it IS shown. */
+  .mobile-menu:not([hidden]) { display: block; }
+  .page-hero { padding: 2rem 0 1rem; }
 }
