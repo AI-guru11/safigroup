@@ -1,7 +1,7 @@
 * { box-sizing: border-box; }
 /* Ensure the HTML hidden attribute always works regardless of CSS display overrides */
 [hidden] { display: none !important; }
-html { scroll-behavior: smooth; overflow-x: hidden; }
+html { scroll-behavior: smooth; }
 body { overflow-x: hidden;
   margin: 0;
   font-family: Tajawal, system-ui, sans-serif;
@@ -85,7 +85,7 @@ label { display: inline-block; margin-bottom: .45rem; font-weight: 700; color: v
   display: block; padding: 1rem; border-radius: 16px; background: rgba(255,255,255,.04); margin-top: .5rem;
 }
 main { padding-bottom: 2rem; }
-.page-hero { padding: 4rem 0 1.5rem; }
+.page-hero { padding: 2rem 0 1rem; }
 .page-title {
   font-size: clamp(2.1rem, 5vw, 4.8rem); line-height: 1.02; margin: 0 0 1rem; font-weight: 900;
 }
@@ -104,5 +104,7 @@ main { padding-bottom: 2rem; }
   /* .mobile-menu visibility is controlled exclusively by the [hidden] attribute via JS.
      We only need to ensure the layout styles are available when it IS shown. */
   .mobile-menu:not([hidden]) { display: block; }
-  .page-hero { padding: 2rem 0 1rem; }
+}
+@media (min-width: 901px) {
+  .page-hero { padding: 4rem 0 1.5rem; }
 }

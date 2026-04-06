@@ -1,6 +1,7 @@
 .glass-card {
   position: relative;
   background: linear-gradient(180deg, rgba(255,255,255,.1), rgba(255,255,255,.045));
+  -webkit-backdrop-filter: blur(var(--blur));
   backdrop-filter: blur(var(--blur));
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
@@ -8,10 +9,13 @@
   padding: 1.4rem;
   overflow: hidden;
 }
+/* Ensure card content always stacks above decorative pseudo-elements */
+.glass-card > * { position: relative; z-index: 1; }
 .glass-card::before {
   content: '';
   position: absolute;
   inset: 0;
+  z-index: 0;
   background: linear-gradient(135deg, rgba(255,255,255,.1), transparent 50%);
   pointer-events: none;
 }
@@ -19,6 +23,7 @@
   content: '';
   position: absolute;
   inset: auto -10% -35% auto;
+  z-index: 0;
   width: 220px;
   height: 220px;
   background: radial-gradient(circle, rgba(129,216,208,.14), transparent 70%);
@@ -36,14 +41,10 @@
 .btn-primary { background: linear-gradient(135deg, rgba(229,57,53,.95), rgba(159,122,234,.72)); border-color: rgba(229,57,53,.4); }
 .btn-secondary { background: rgba(255,255,255,.05); }
 .btn-ghost { background: transparent; }
-.bento-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 1rem; }
-.span-3 { grid-column: span 3; }
-.span-4 { grid-column: span 4; }
-.span-5 { grid-column: span 5; }
-.span-6 { grid-column: span 6; }
-.span-7 { grid-column: span 7; }
-.span-8 { grid-column: span 8; }
-.span-12 { grid-column: 1 / -1; }
+/* Mobile-first: single column by default, 12-column grid on desktop.
+   This ensures the layout is always readable even if media queries fail. */
+.bento-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+.span-3, .span-4, .span-5, .span-6, .span-7, .span-8, .span-12 { grid-column: 1 / -1; }
 .eyebrow {
   display: inline-flex; align-items: center; gap: .5rem; padding: .45rem .8rem; border-radius: 999px;
   background: rgba(255,255,255,.06); border: 1px solid var(--border); color: var(--muted); font-size: .9rem;
@@ -54,7 +55,7 @@
 }
 .section-title { font-size: clamp(1.4rem, 3vw, 2.4rem); margin: 0 0 .75rem; font-weight: 800; }
 .section-copy { color: var(--muted); max-width: 62ch; }
-.stats-list { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 1rem; }
+.stats-list { display: grid; grid-template-columns: 1fr; gap: 1rem; }
 .stat {
   padding: 1rem; border-radius: var(--radius-md); background: rgba(255,255,255,.05); border: 1px solid var(--border);
 }
@@ -63,14 +64,14 @@
 .list-clean { margin: 1rem 0 0; padding: 0; list-style: none; }
 .list-clean li { padding: .7rem 0; border-bottom: 1px solid rgba(255,255,255,.07); }
 .list-clean li:last-child { border-bottom: none; }
-.field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.field-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
 .chip-row { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1rem; }
 .chip {
   display: inline-flex; align-items: center; gap: .4rem; padding: .6rem .9rem;
   border-radius: 999px; border: 1px solid var(--border); background: rgba(255,255,255,.05); color: var(--fg-soft);
 }
 .chip.is-active { border-color: rgba(129,216,208,.38); background: rgba(129,216,208,.12); color: #dffbf8; }
-.kpi-strip { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 1rem; }
+.kpi-strip { display: grid; grid-template-columns: 1fr; gap: 1rem; }
 .kpi {
   padding: 1rem 1.1rem; border-radius: var(--radius-md); background: rgba(255,255,255,.04); border: 1px solid var(--border);
 }
@@ -78,10 +79,19 @@
 .empty-state {
   padding: 2rem; border: 1px dashed var(--border); border-radius: var(--radius-lg); color: var(--muted); text-align: center;
 }
-@media (max-width: 900px) {
-  .bento-grid { grid-template-columns: 1fr; }
-  .span-3, .span-4, .span-5, .span-6, .span-7, .span-8, .span-12 { grid-column: 1 / -1; }
-  .stats-list, .field-grid, .kpi-strip { grid-template-columns: 1fr; }
+/* Desktop enhancement: 12-column grid and multi-column layouts */
+@media (min-width: 901px) {
+  .bento-grid { grid-template-columns: repeat(12, 1fr); }
+  .span-3 { grid-column: span 3; }
+  .span-4 { grid-column: span 4; }
+  .span-5 { grid-column: span 5; }
+  .span-6 { grid-column: span 6; }
+  .span-7 { grid-column: span 7; }
+  .span-8 { grid-column: span 8; }
+  .span-12 { grid-column: 1 / -1; }
+  .stats-list { grid-template-columns: repeat(3, minmax(0,1fr)); }
+  .field-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kpi-strip { grid-template-columns: repeat(3, minmax(0,1fr)); }
 }
 
 .btn:focus-visible,
