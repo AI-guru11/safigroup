@@ -1,27 +1,15 @@
 {
-  "name": "Safi Group",
-  "short_name": "Safi",
-  "description": "Safi Group — Advertising & Marketing Agency",
-  "start_url": "./?source=pwa",
-  "scope": "./",
+  "name": "مجموعة الصافي",
+  "short_name": "الصافي",
+  "description": "منصة متعددة الصفحات لعرض خدمات وأعمال ومنتجات مجموعة الصافي.",
+  "start_url": "/safigroup/",
+  "scope": "/safigroup/",
   "display": "standalone",
-  "background_color": "#0A0A0A",
-  "theme_color": "#0A0A0A",
-  "orientation": "portrait",
-  "dir": "rtl",
+  "background_color": "#07090d",
+  "theme_color": "#07090d",
   "lang": "ar",
   "icons": [
-    {
-      "src": "./assets/icons/icon-192.webp",
-      "sizes": "192x192",
-      "type": "image/webp",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "./assets/icons/icon-512.webp",
-      "sizes": "512x512",
-      "type": "image/webp",
-      "purpose": "any maskable"
-    }
+    { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ]
 }
